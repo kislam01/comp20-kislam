@@ -1,3 +1,9 @@
 body{
 	text-align: center;
+	background-color: lightblue;
+}
+
+#title{
+	font-family: sans-serif;
+	font-weight: bolder;
 }
