@@ -1,1 +1,17 @@
-/* Your CSS here... */
+
+h1{
+	color: blue;
+}
+
+#content{
+	font-size: large; 
+}
+
+#username{
+	font-size: x-small;
+}	
+
+p{
+	background-color:lightgreen;
+	border-radius: 25px;
+}

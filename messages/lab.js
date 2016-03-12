@@ -1,4 +1,4 @@
-// Your JavaScript goes here...
+
 function parse() {
 
 	request = new XMLHttpRequest();
@@ -13,8 +13,7 @@ function callme() {
 		message = JSON.parse(data);	
 		elem = document.getElementById("messages");
 		for (count = 0; count < message.length; count++) {
-			elem.innerHTML += "<p>" + message[count]["content"] + " " + message[count]["username"] + "</p>"; 
-			
+			elem.innerHTML += "<p>" + "<span id= 'content'>" + message[count]["content"] + " " + "<span id = 'username'>" + message[count]["username"] + "</p>"; 
 		}
 	}
 	
