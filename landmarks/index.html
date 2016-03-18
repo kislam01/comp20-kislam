@@ -9,6 +9,7 @@
 		<link rel="stylesheet" href="map_stylesheet.css" />
 		
 		<script>
+			var parsed_data = "";
 			var myLat = 0;
 			var myLng = 0;
 			var myLogin = "SANFORD_KEMP";
@@ -27,7 +28,6 @@
 			{
 				map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
 				getMyLocation();
-				sendRequest();
 			}
 			
 			function getMyLocation() {
@@ -36,6 +36,7 @@
 						myLat = position.coords.latitude;
 						myLng = position.coords.longitude;
 						renderMap();
+						sendRequest();
 					});
 				}
 				else {
@@ -70,13 +71,57 @@
 				
 				request.onreadystatechange = function() {
 					if (request.readyState == 4 && request.status == 200){
-						data = alert(request.responseText);
+						data = request.responseText;
+						console.log(data);
+						parsed_data = JSON.parse(data);
+						
+						peopleMarker();
+						landmarksMarker();
+						}
 					}
-				}
 				request.send(params);
 			}
-
+			function peopleMarker(){
 				
+				for (count = 0; count < parsed_data.people.length; count++){
+					
+					people_lat = parsed_data.people[count]["lat"];
+					
+					people_lng = parsed_data.people[count]["lng"];
+					people_login = parsed_data.people[count]["login"];
+					people_pos = new google.maps.LatLng(people_lat, people_lng);
+					new_marker = new google.maps.Marker({
+						position: people_pos,
+						title: people_login	
+					});	
+					new_marker.setMap(map);
+
+					google.maps.event.addListener(new_marker, 'click', function() {
+						infowindow.setContent(new_marker.title);
+						infowindow.open(map, new_marker);
+					});
+				}
+			}
+			function landmarksMarker(){
+
+				for (count = 0; count < parsed_data.landmarks.length; count++){
+					landmark_lat= parsed_data.landmarks[count].geometry.coordinates[1];
+				
+					landmark_lng= parsed_data.landmarks[count].geometry.coordinates[0];
+					landmark_name = parsed_data.landmarks[count].properties.Location_Name;
+					landmark_pos = new google.maps.LatLng(landmark_lat, landmark_lng);
+					landmark_marker = new google.maps.Marker({
+							position: landmark_pos,
+							title: landmark_name
+					});
+					landmark_marker.setMap(map);
+
+					google.maps.event.addListener(landmark_marker,'click',function() {
+							infowindow.setContent(landmark_marker.title);
+							infowindow.open(map, landmark_marker);
+					});
+				}	
+			}	
 
 		</script>
 	</head>
