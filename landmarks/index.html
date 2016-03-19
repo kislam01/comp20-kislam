@@ -13,6 +13,7 @@
 			var myLat = 0;
 			var myLng = 0;
 			var myLogin = "SANFORD_KEMP";
+			var dist_peopleToMe;
 			var request = new XMLHttpRequest();
 			var me = new google.maps.LatLng(myLat, myLng);
 			var myOptions = {
@@ -22,8 +23,22 @@
 					};
 			var map;
 			var marker;
+			var people_infowindow = [];
+			var landmark_infowindow = [];
 			var infowindow = new google.maps.InfoWindow();
-			
+			var people_info = [];
+			var landmark_info = [];
+			var marker_array = [];
+			var landmark_marker_array = [];
+			var landmark_icon = {
+				url:'landmark.png',
+				scaledSize: new google.maps.Size(22,32)
+			};
+			var people_icon = {
+				url: 'people.png',
+				scaledSize: new google.maps.Size(30,40)
+			};
+
 			function init()
 			{
 				map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
@@ -54,6 +69,7 @@
 				marker = new google.maps.Marker({
 					position: me,
 					title: myLogin
+					
 				});
 				marker.setMap(map);
 					
@@ -72,56 +88,94 @@
 				request.onreadystatechange = function() {
 					if (request.readyState == 4 && request.status == 200){
 						data = request.responseText;
-						console.log(data);
 						parsed_data = JSON.parse(data);
-						
 						peopleMarker();
 						landmarksMarker();
 						}
 					}
 				request.send(params);
 			}
+			 
 			function peopleMarker(){
 				
-				for (count = 0; count < parsed_data.people.length; count++){
+
+				for (var count = 0; count < parsed_data.people.length; count++){
 					
 					people_lat = parsed_data.people[count]["lat"];
 					
 					people_lng = parsed_data.people[count]["lng"];
 					people_login = parsed_data.people[count]["login"];
 					people_pos = new google.maps.LatLng(people_lat, people_lng);
-					new_marker = new google.maps.Marker({
+					haversign_dist(people_lat,people_lng, myLat, myLng);
+					
+					
+					marker_array[count] = new google.maps.Marker({
 						position: people_pos,
-						title: people_login	
+						title: people_login,
+						icon: people_icon	
 					});	
-					new_marker.setMap(map);
-
-					google.maps.event.addListener(new_marker, 'click', function() {
-						infowindow.setContent(new_marker.title);
-						infowindow.open(map, new_marker);
-					});
+					people_info[count] = people_login + " " + dist_peopleToMe;
+					people_infowindow[count] = new google.maps.InfoWindow();
 				}
+				
+				
+				for (var i = 0; i < marker_array.length; i++){
+					google.maps.event.addListener(marker_array[i], 'click', (function(i) {
+        				return function() {
+        					people_infowindow[i].setContent(people_info[i]);
+          					people_infowindow[i].open(map,marker_array[i]);
+        				}
+      				})(i));
+      				marker_array[i].setMap(map);
+					}
 			}
+
+				
+			
 			function landmarksMarker(){
 
-				for (count = 0; count < parsed_data.landmarks.length; count++){
-					landmark_lat= parsed_data.landmarks[count].geometry.coordinates[1];
+				for (var count = 0; count < parsed_data.landmarks.length; count++){
+					landmark_lat = parsed_data.landmarks[count].geometry.coordinates[1];
 				
-					landmark_lng= parsed_data.landmarks[count].geometry.coordinates[0];
+					landmark_lng = parsed_data.landmarks[count].geometry.coordinates[0];
 					landmark_name = parsed_data.landmarks[count].properties.Location_Name;
 					landmark_pos = new google.maps.LatLng(landmark_lat, landmark_lng);
-					landmark_marker = new google.maps.Marker({
+					landmark_marker_array[count] = new google.maps.Marker({
 							position: landmark_pos,
-							title: landmark_name
+							title: landmark_name,
+							icon: landmark_icon
 					});
-					landmark_marker.setMap(map);
+					landmark_info[count] = parsed_data.landmarks[count].properties["Details"];
+					landmark_infowindow[count] = new google.maps.InfoWindow();
+				}
 
-					google.maps.event.addListener(landmark_marker,'click',function() {
-							infowindow.setContent(landmark_marker.title);
-							infowindow.open(map, landmark_marker);
-					});
-				}	
+				for (var i = 0; i < landmark_marker_array.length; i++){	
+					google.maps.event.addListener(landmark_marker_array[i],'click', (function(i) {
+						return function() {	
+							landmark_infowindow[i].setContent(landmark_info[i]);
+							landmark_infowindow[i].open(map, landmark_marker_array[i]);
+						}	
+					})(i));
+					landmark_marker_array[i].setMap(map);
+					}	
 			}	
+			
+			function haversign_dist(lat1,lon1,lat2,lon2){
+
+				Number.prototype.toRad = function() {
+				   return this * Math.PI / 180;
+				}
+
+				var R = 6371; // km 
+				var x1 = lat2-lat1;
+				var dLat = x1.toRad();  
+				var x2 = lon2-lon1;
+				var dLon = x2.toRad();  
+				var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1.toRad()) * Math.cos(lat2.toRad()) * Math.sin(dLon/2) * Math.sin(dLon/2);
+				var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+				dist_peopleToMe = R * c * 0.621371;  //miles 	
+
+			}
 
 		</script>
 	</head>
