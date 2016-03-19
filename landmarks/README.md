@@ -18,3 +18,9 @@ Function for calculating distance by haversign formula was obtained from the
 following stackoverflow discussion:
 
 http://stackoverflow.com/questions/14560999/using-the-haversine-formula-in-javascript
+
+# Additional info:
+
+- Red Balloon marker represents my location
+- Blue people icons represent the locations of the other people in my class
+- The dark plue pins represent the locations of historic landmarks near me

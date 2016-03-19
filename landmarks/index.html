@@ -13,11 +13,13 @@
 			var myLat = 0;
 			var myLng = 0;
 			var myLogin = "SANFORD_KEMP";
-			var dist_peopleToMe;
+			var dist_peopleToMe = 0;
+			var dist_landmarkToMe = [];
+			var shortest_dist = 0; 
 			var request = new XMLHttpRequest();
 			var me = new google.maps.LatLng(myLat, myLng);
 			var myOptions = {
-						zoom: 13, // The larger the zoom number, the bigger the zoom
+						zoom: 15, 
 						center: me,
 						mapTypeId: google.maps.MapTypeId.ROADMAP
 					};
@@ -69,10 +71,9 @@
 				marker = new google.maps.Marker({
 					position: me,
 					title: myLogin
-					
 				});
 				marker.setMap(map);
-					
+				
 				// Open info window on click of marker
 				google.maps.event.addListener(marker, 'click', function() {
 					infowindow.setContent(marker.title);
@@ -98,7 +99,7 @@
 			 
 			function peopleMarker(){
 				
-
+				// loops through the list of people in the data and creates a marker for each person
 				for (var count = 0; count < parsed_data.people.length; count++){
 					
 					people_lat = parsed_data.people[count]["lat"];
@@ -106,7 +107,7 @@
 					people_lng = parsed_data.people[count]["lng"];
 					people_login = parsed_data.people[count]["login"];
 					people_pos = new google.maps.LatLng(people_lat, people_lng);
-					haversign_dist(people_lat,people_lng, myLat, myLng);
+					dist_peopleToMe = haversign_dist(people_lat,people_lng, myLat, myLng);
 					
 					
 					marker_array[count] = new google.maps.Marker({
@@ -114,11 +115,11 @@
 						title: people_login,
 						icon: people_icon	
 					});	
-					people_info[count] = people_login + " " + dist_peopleToMe;
+					people_info[count] = people_login + "; " + dist_peopleToMe + " miles away from " + myLogin;
 					people_infowindow[count] = new google.maps.InfoWindow();
 				}
 				
-				
+				// loops through the list of markers and assigns each to an infowindow. 
 				for (var i = 0; i < marker_array.length; i++){
 					google.maps.event.addListener(marker_array[i], 'click', (function(i) {
         				return function() {
@@ -134,21 +135,47 @@
 			
 			function landmarksMarker(){
 
+				//loops through the list of landmarks and creates a marker for each
 				for (var count = 0; count < parsed_data.landmarks.length; count++){
 					landmark_lat = parsed_data.landmarks[count].geometry.coordinates[1];
 				
 					landmark_lng = parsed_data.landmarks[count].geometry.coordinates[0];
 					landmark_name = parsed_data.landmarks[count].properties.Location_Name;
 					landmark_pos = new google.maps.LatLng(landmark_lat, landmark_lng);
+					dist_landmarkToMe[count] = haversign_dist(myLat, myLng, landmark_lat, landmark_lng);
+
 					landmark_marker_array[count] = new google.maps.Marker({
 							position: landmark_pos,
 							title: landmark_name,
 							icon: landmark_icon
 					});
+					
 					landmark_info[count] = parsed_data.landmarks[count].properties["Details"];
 					landmark_infowindow[count] = new google.maps.InfoWindow();
 				}
+				var landmark_index = shortest_dist_index(dist_landmarkToMe);
+				var nearest_lat = parsed_data.landmarks[landmark_index].geometry.coordinates[1];
+				var nearest_lng = parsed_data.landmarks[landmark_index].geometry.coordinates[0];
+				
+				// updates my infowindow title 
+				marker.title = myLogin + "; nearest landmark to me is "  + parsed_data.landmarks[landmark_index].properties.Location_Name + " which is "  + shortest_dist + " miles away from me"; 
 
+				var shortest_path = [
+					{lat: myLat, lng: myLng},
+					{lat: nearest_lat, lng: nearest_lng}
+				];
+				// creates polyline showing nearest landmark
+				var new_polyline = new google.maps.Polyline({
+					path: shortest_path,
+					geodesic: true,
+					strokeColor: '#FF0000',
+					strokeOpacity: 2.0,
+					strokeWeight: 5
+				});
+
+				new_polyline.setMap(map);
+
+				// loops through the list of landmark markers and assigns an infowindow for each
 				for (var i = 0; i < landmark_marker_array.length; i++){	
 					google.maps.event.addListener(landmark_marker_array[i],'click', (function(i) {
 						return function() {	
@@ -157,7 +184,7 @@
 						}	
 					})(i));
 					landmark_marker_array[i].setMap(map);
-					}	
+				}	
 			}	
 			
 			function haversign_dist(lat1,lon1,lat2,lon2){
@@ -173,9 +200,26 @@
 				var dLon = x2.toRad();  
 				var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1.toRad()) * Math.cos(lat2.toRad()) * Math.sin(dLon/2) * Math.sin(dLon/2);
 				var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-				dist_peopleToMe = R * c * 0.621371;  //miles 	
+				return R * c * 0.621371;  //miles 	
 
 			}
+
+			// this function loops through the array of landmark distances and returns the index 
+			// of the array which corresponds to the shortest distance.  
+			function shortest_dist_index(distance_array){
+
+				var count;
+				var index;
+				shortest_dist = distance_array[0];
+				for (count = 0; count < distance_array.length; count++){
+					if (distance_array[count] <= shortest_dist){
+						shortest_dist = distance_array[count];
+						index = count;
+					}	
+				}
+				return index;
+			}
+			
 
 		</script>
 	</head>
