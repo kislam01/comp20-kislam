@@ -6,7 +6,7 @@
 
   Created a webpage where the user can input entries which are stored in the
   browser's local storage and displayed dynamically along with a human-readable
-  timestamp that shows when the message/entry was posted.
+  timestamp that shows when the entry was posted.
 
 # Time spent:
 
