@@ -7,9 +7,6 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
 	<script>
 		$(document).ready(function() {
-			localStorage.clear();
-			localStorage.setItem('message', '');
-			
 			$("#msg").keyup(function(e) {
 				if (e.keyCode == '13') {
 					store();
@@ -21,8 +18,8 @@
 			output = "";
 
 			for (key in localStorage){
-				//console.log(localStorage[key]);
-				output = localStorage[key] +"<p>" + output + "</p>\n";
+				parsedDate = new Date(parseInt(key));
+				output = "<p>" + parsedDate + " - " + localStorage[key] +"</p>\n" + output;
 			}	
 			$("#log").html(output);
 				
@@ -30,7 +27,6 @@
 
 		function store(){
 			text = $("#msg").val();
-			console.log(text);
 			localStorage[new Date().getTime()] = text;
 			reload();
 		}
