@@ -1,0 +1,52 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Security Report</title>
+	</head>
+	<body>
+		<h1>Security Assessment Report for Tony Nguyen's "Landmarks" Project</h1>
+		<h3>Introduction</h3>
+		<p>
+		"Landmarks" is a simple web application that can be used to used to retrieve the location of a set of people(in this case, all the students of the COMP20 class) and historic landmarks that are close to the user. Once the user of the application sends his/her data(login, latitude and longitude) to the server, the server returns to the client the location of all the students in the class along with the historic landmarks within a mile from the user, which are then used to place markers on a map. 
+		</p>
+		<p>	
+		Despite the application functioning properly, there are several web security vulnerabilities in it which make it unsafe from potential hackers. As a web security analyst, my primary objective was to find out the security flaws associated to this website and suggest fixes for them.   	
+		</p>
+
+		<h3>Methodology</h3>
+		<p>
+		Initially, I tried to hack my partner's web application without having seen his source code. I used curl to inject data into the application via the POST api. After having figured out some of the basic security flaws, I went on to read the source code in order to figure out further potential threats in the application. Throughout my assessment, I did not use any tools (other than curl) such as Burp Suite, Tamper, etc.  	
+		</p>
+
+		<h3>Abstract of Findings</h3>
+		<p>
+		The security flaws I found in this website are common ones that most web developers unknowingly ignore when creating their app. The flaws mostly revolve around the fact that any user can input malicious data into the website and successfully manage to crash it. Instead of inputting a proper login data, the user can input code that changes the appearance of the website or even redirect any user to a completely different (malicious) website. In addition, due to lack of input data filtering, any user can spam the database of the website with unnecessary, irrelevant or malicious content  
+		</p>
+
+		<h3>Issues Found</h3>
+		<p>1. Cross-Site-Scripting(XSS)</p> 	
+		<ul>
+			<li>By injecting a Javascript script under the "login" tag in the POST /sendLocation API, I was able to infiltrate the application easily so that any user visiting the server-side app via the GET '/' method would get a pop-up alerting the user that the application has been hacked. I also managed to insert an undesired image as part of the script.</li>
+			<li>The risk associated with this infiltration is HIGH. This is because it allows any user to input any data he/she wants to, and thus potentially crash the app. It fills up the database with unwanted data, thus wasting valuable space in the database and more importantly, feeding the client with unreliable malicious data.</li>    
+			<li> Thankfully, resolving this vulnerability is quite easy. All that needs to be done is to ensure that the ability for data to be interpreted as code is removed. This can be done by replacing the angled brackets. Change &lt; to &amp;lt; and &gt; to &amp;gt.</li>
+		</ul>			
+		<p>2. HTML injection</p>
+		<ul>
+			<li>This vulnerability allows the user to inject any HTML code as part of any of the input fields when sending data via the POST /sendLocation API. Instead of entering a proper login name, I entered an HTML script saying "HACKED". Despite the fact that I entered proper latitude and longitude data, it still caused the homepage of the server to not show any of these information. Only the HTML injection associated with my data was being shown in the page.</li> 
+			<li>The risk associated with this infiltration is HIGH. Like XSS, it allows the user to inject any malicious data into the databse very easily. It wastes space in the database, and more importantly, sends the client incorrect or malicious data, causing any website that relies on this server to behave unexpectedly. 
+			</li>
+			<li>Once again, the solution to this vulnerability is quite simple. Like XSS, the ability for data to be interpreted as code needs to be removed by replacing the angled brackets with '&amp;gt' or '&amp;lt'. </li> 
+		</ul>		
+		<p>3. Acceptance of invalid data type for Latitude and Longitude</p>
+		<ul>
+			<li>This allows the user to send the wrong data type for the Latitude and Longitude fields in the POST /sendLocation API. I tried sending the server strings instead of numbers for lat and lng, and this still caused the app to store the data into the database.</li>
+			<li>The risk associated with this infiltration is HIGH. When any website tries using the lat and lng data from this server to perform mathematical operations(such as calculate distance) it will not be able to do so as such operations can only be done on integer or float values but not strings.</li>
+			<li>This issue can easily be fixed. All that needs to be done is to validate the user input to check if the lat and lng values are floats and not any other data types BEFORE the data is pushed into the database.</li>
+		</ul>
+		
+		<h3>Conclusion</h3>
+		<p> 
+		Web security issues such as the ones I presented in this report can leave any web application at a huge risk from getting hacked or broken down. Given how easy it is to break into this website, it does not even require any professional hacker to bring it down. Anyone with malicious intent has the ability to crash this application. Given the simplicity of the fixes for these security flaws, it would definitely be advisable to make this application more secure at the cost of a relatively small amount of money compared to the cost of security breaches to the application	</p> 			  
+
+	</body>
+</html>
