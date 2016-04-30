@@ -15,7 +15,7 @@
 
 		<h3>Methodology</h3>
 		<p>
-		Initially, I tried to hack my partner's web application without having seen his source code. I used curl to inject data into the application via the POST api. After having figured out some of the basic security flaws, I went on to read the source code in order to figure out further potential threats in the application. Throughout my assessment, I did not use any tools (other than curl) such as Burp Suite, Tamper, etc.  	
+		Initially, I tried to hack my partner's web application without having seen his source code. I used curl to inject data into the application via the POST api. After having figured out some of the basic security flaws, I went on to read the source code in order to figure out further potential threats in the application. Throughout my assessment, I did not use any tools (other than curl) such as Burp Suite, Tamper, etc. I ran and tested all code locally, so I had to create a new mongo database in my local machine. This made it easier for me to conduct the assessment as I could remove data from the local database at my own will, instead of having to ask my partner to remove data time and again as I did not have collaborator access to his heroku app.  	
 		</p>
 
 		<h3>Abstract of Findings</h3>
@@ -24,22 +24,44 @@
 		</p>
 
 		<h3>Issues Found</h3>
-		<p>1. Cross-Site-Scripting(XSS)</p> 	
+		<p><b>1. Cross-Site-Scripting(XSS)</b></p> 	
 		<ul>
-			<li>By injecting a Javascript script under the "login" tag in the POST /sendLocation API, I was able to infiltrate the application easily so that any user visiting the server-side app via the GET '/' method would get a pop-up alerting the user that the application has been hacked. I also managed to insert an undesired image as part of the script.</li>
+			<li>By injecting a Javascript script under the "login" tag in the POST /sendLocation API, I was able to infiltrate the application easily so that any user visiting the server-side app via the GET '/' method would get a pop-up alerting the user that the application has been hacked. I sent the Javascript code via curl as follows: <p>
+			<b>curl  --data "&lt;script&gt;alert('You have been Hacked!HAHAHAHA!')&lt;/script&gt;"  http://localhost:5000/sendLocation</b></p>
+			<img src="Screenshot2.png" alt="alert screenshot">
+			<br>
+			<p>I also managed to insert an undesired image as part of the script as follows:</p>
+			<p><b>curl  --data '&lt;script&gt;window.document.body.innerHTML='&lt;img src=" http://tutorials.hostucan.net/wp-content/uploads/2015/04/hacked1.jpg"/>';&lt;/script>'  http://localhost:5000/sendLocation</b></p>
+			<img src="Screenshot3.png" alt="Hacked image">
+			</li>
+			<br>
 			<li>The risk associated with this infiltration is HIGH. This is because it allows any user to input any data he/she wants to, and thus potentially crash the app. It fills up the database with unwanted data, thus wasting valuable space in the database and more importantly, feeding the client with unreliable malicious data.</li>    
-			<li> Thankfully, resolving this vulnerability is quite easy. All that needs to be done is to ensure that the ability for data to be interpreted as code is removed. This can be done by replacing the angled brackets. Change &lt; to &amp;lt; and &gt; to &amp;gt.</li>
+			<li> Thankfully, resolving this vulnerability is quite easy. All that needs to be done is to ensure that the ability for data to be interpreted as code is removed. This can be done by replacing the angled brackets. Change &lt; to &amp;lt and &gt; to &amp;gt.</li>
 		</ul>			
-		<p>2. HTML injection</p>
+		<p><b>2. HTML injection</b></p>
 		<ul>
-			<li>This vulnerability allows the user to inject any HTML code as part of any of the input fields when sending data via the POST /sendLocation API. Instead of entering a proper login name, I entered an HTML script saying "HACKED". Despite the fact that I entered proper latitude and longitude data, it still caused the homepage of the server to not show any of these information. Only the HTML injection associated with my data was being shown in the page.</li> 
+			<li>This vulnerability allows the user to inject any HTML code as part of any of the input fields when sending data via the POST /sendLocation API. Instead of entering a proper login name, I entered an HTML script saying "HACKED", as shown below:<br>
+			<p><b>curl  --data "&lt;p&gt;HACKED BY EVIL HACKER&lt;/p&gt;"  http://localhost:5000/sendLocation</b></p>
+			<p>This caused the GET API to be affected, as the app homepage showed the injected HTML paragraph notifying the user that the app has been hacked.</p>
+			<br>
+			<img src="Screenshot4.png" alt="Hacker image">
+			<br>
+			</li> 
+			<br>
 			<li>The risk associated with this infiltration is HIGH. Like XSS, it allows the user to inject any malicious data into the databse very easily. It wastes space in the database, and more importantly, sends the client incorrect or malicious data, causing any website that relies on this server to behave unexpectedly. 
 			</li>
 			<li>Once again, the solution to this vulnerability is quite simple. Like XSS, the ability for data to be interpreted as code needs to be removed by replacing the angled brackets with '&amp;gt' or '&amp;lt'. </li> 
 		</ul>		
-		<p>3. Acceptance of invalid data type for Latitude and Longitude</p>
+		<p><b>3. Acceptance of invalid data type for Latitude and Longitude</b></p>
 		<ul>
-			<li>This allows the user to send the wrong data type for the Latitude and Longitude fields in the POST /sendLocation API. I tried sending the server strings instead of numbers for lat and lng, and this still caused the app to store the data into the database.</li>
+			<li>This allows the user to send the wrong data type for the Latitude and Longitude fields in the POST /sendLocation API. I tried sending the server strings instead of numbers for lat and lng, and this still caused the app to store the data into the database. The curl command I entered was as follows:
+			<p><b>curl  --data  "login=guest&amp;lat=evil&amp;lng=hacker"  http://localhost:5000/sendLocation</b></p>
+			
+			<p>The infiltration showed up in the GET API as seen below:</p>
+			<br>
+			<img src="Screenshot1.png" alt="Wrong data type">     	
+			<br>
+			</li>
 			<li>The risk associated with this infiltration is HIGH. When any website tries using the lat and lng data from this server to perform mathematical operations(such as calculate distance) it will not be able to do so as such operations can only be done on integer or float values but not strings.</li>
 			<li>This issue can easily be fixed. All that needs to be done is to validate the user input to check if the lat and lng values are floats and not any other data types BEFORE the data is pushed into the database.</li>
 		</ul>
