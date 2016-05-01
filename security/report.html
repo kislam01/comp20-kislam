@@ -40,15 +40,15 @@
 		</ul>			
 		<p><b>2. HTML injection</b></p>
 		<ul>
-			<li>This vulnerability allows the user to inject any HTML code as part of any of the input fields when sending data via the POST /sendLocation API. Instead of entering a proper login name, I entered an HTML script saying "HACKED", as shown below:<br>
-			<p><b>curl  --data "&lt;p&gt;HACKED BY EVIL HACKER&lt;/p&gt;"  http://localhost:5000/sendLocation</b></p>
-			<p>This caused the GET API to be affected, as the app homepage showed the injected HTML paragraph notifying the user that the app has been hacked.</p>
+			<li>This vulnerability allows the user to inject any HTML code as part of any of the input fields when sending data via the POST /sendLocation API. Instead of entering a proper login name, I entered an HTML script that asks the user to click on a link to get the chance to win money. However, the link actually redirects the user to a harmful website. The curl command for this attack is shown below:<br>
+			<p><b>curl  --data "login=&lt;h1&gt;&lt;a href='http://harmfulsite.org'&gt;Hello visitor!Click here to get a chance to win $500 &lt;/a&gt;&lt;/h1&gt;&amp;lat=56&amp;lng=64"  http://localhost:5000/sendLocation</b></p>
+			<p>This attack caused the GET API to be affected as shown below:</p>
 			<br>
-			<img src="Screenshot4.png" alt="Hacker image">
+			<img src="Screenshot5.png" alt="Hacker image">
 			<br>
 			</li> 
 			<br>
-			<li>The risk associated with this infiltration is HIGH. Like XSS, it allows the user to inject any malicious data into the databse very easily. It wastes space in the database, and more importantly, sends the client incorrect or malicious data, causing any website that relies on this server to behave unexpectedly. 
+			<li>The risk associated with this infiltration is HIGH. Like XSS, it allows the user to inject any malicious data into the databse very easily. It wastes space in the database, and more importantly, it changes the apperance of a web application. The user can easily be manipulated to redirect to any harmful links injected to the app, given that the link was found in a trusted domain.  
 			</li>
 			<li>Once again, the solution to this vulnerability is quite simple. Like XSS, the ability for data to be interpreted as code needs to be removed by replacing the angled brackets with '&amp;gt' or '&amp;lt'. </li> 
 		</ul>		
